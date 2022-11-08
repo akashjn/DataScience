@@ -2,7 +2,8 @@ import numpy as np
 import pandas as pd
 import rdkit.Chem as Chem
 from rdkit.Chem import rdMolDescriptors 
-pd.set_option('display.max_columns', None)
+from sklearn.preprocessing import StandardScaler
+
 
 def RDkit_descriptors(smiles):
     """
@@ -65,3 +66,64 @@ def remove_duplicate_smiles(df,smi="SMILES"):
     print(f"Removed {sum(df.duplicated(subset=smi))} duplicate SMILES from the given df")
     df.drop_duplicates(subset=[smi])
     return df
+
+
+def do_scaling(scaler=StandardScaler(), xtrain=None, xtest=None):
+    """
+    Usage: do_scaling(scaler=MinMaxScaler(), xtrain=xtrain, xtest=test) 
+    xtrain and xtest are pd.Dataframes
+    Caution: Do test_train_split before scaling
+    Return: return scaled non-None xtrain and xtest
+    """
+    # from sklearn.preprocessing import StandardScaler
+    st = scaler
+
+    if xtrain is not None:
+        col=xtrain.columns.values.tolist()
+        xtrain=st.fit_transform(xtrain)  
+        xtrain=pd.DataFrame(xtrain,columns=col)
+
+        if xtest is not None:
+            
+            xtest=st.transform(xtest)
+            xtest=pd.DataFrame(xtest,columns=col)
+            print("returning scaled train and test data")
+            return xtrain,xtest
+        else:
+            print("test data is not provided, returning only scaled train data")
+            return xtrain
+    else:
+        print("Give train data, returning None")
+        return xtrain,xtest
+
+def check_normality_feat(df,alpha = 0.05):
+    """
+    This function will check the normality of each feature in the df
+    Print out the list of non-normal and normal features 
+    """
+    from scipy.stats import shapiro
+    print("Shapiro-Wilk test of normality")
+    
+    normal_feat= [False]*len(df.columns.to_list())
+    w_stat_feat=np.zeros(len(df.columns.to_list()))
+    p_value_feat=np.zeros(len(df.columns.to_list()))
+    
+    for idx,col in enumerate(df.columns.to_list()):            
+        w_stat_feat[idx],p_value_feat[idx] = shapiro(df[col])
+        
+        if p_value_feat[idx] > alpha:
+            normal_feat[idx]=True
+        else:
+            pass
+    normal_feat_dict={}
+    normal_feat_dict["Feature"]=df.columns.to_list()
+    normal_feat_dict["Normal_dist"]=normal_feat
+    normal_feat_dict["W_stat"]=w_stat_feat
+    normal_feat_dict["p-value"]=p_value_feat
+    
+    df_nor=pd.DataFrame(normal_feat_dict)
+    
+    print(f"{df_nor['Normal_dist'].sum()} features are normally distributed")
+    print(f'Returning a dataframe with {df_nor.columns.to_list()} columns')
+    
+    return df_nor
