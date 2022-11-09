@@ -96,31 +96,59 @@ def do_scaling(scaler=StandardScaler(), xtrain=None, xtest=None):
         print("Give train data, returning None")
         return xtrain,xtest
 
-def check_normality_feat(df,alpha = 0.05):
+def check_normality_feat(df,alpha = 0.05,test=None):
     """
     This function will check the normality of each feature in the df
     Print out the list of non-normal and normal features 
     """
-    from scipy.stats import shapiro
-    print("Shapiro-Wilk test of normality")
-    
-    normal_feat= [False]*len(df.columns.to_list())
-    w_stat_feat=np.zeros(len(df.columns.to_list()))
-    p_value_feat=np.zeros(len(df.columns.to_list()))
-    
-    for idx,col in enumerate(df.columns.to_list()):            
-        w_stat_feat[idx],p_value_feat[idx] = shapiro(df[col])
+    if (test is not None) & (test=="shapiro"):
+        from scipy.stats import shapiro
+        print("Shapiro-Wilk test of normality")
         
-        if p_value_feat[idx] > alpha:
-            normal_feat[idx]=True
-        else:
-            pass
-    normal_feat_dict={}
-    normal_feat_dict["Feature"]=df.columns.to_list()
-    normal_feat_dict["Normal_dist"]=normal_feat
-    normal_feat_dict["W_stat"]=w_stat_feat
-    normal_feat_dict["p-value"]=p_value_feat
+        normal_feat= [False]*len(df.columns.to_list())
+        w_stat_feat=np.zeros(len(df.columns.to_list()))
+        p_value_feat=np.zeros(len(df.columns.to_list()))
+        
+        for idx,col in enumerate(df.columns.to_list()):            
+            w_stat_feat[idx],p_value_feat[idx] = shapiro(df[col])
+        
+            if p_value_feat[idx] > alpha:
+                normal_feat[idx]=True
+            else:
+                pass
+
+        normal_feat_dict={}
+        normal_feat_dict["Feature"]=df.columns.to_list()
+        normal_feat_dict["Normal_dist"]=normal_feat
+        normal_feat_dict["W_stat"]=w_stat_feat
+        normal_feat_dict["p-value"]=p_value_feat
     
+    elif (test is not None) & (test=="agostino"):
+        from scipy.stats import normaltest
+        print("D'Agostino K2 test of normality")
+        
+        normal_feat= [False]*len(df.columns.to_list())
+        k2_stat_feat=np.zeros(len(df.columns.to_list()))
+        p_value_feat=np.zeros(len(df.columns.to_list()))
+        
+        for idx,col in enumerate(df.columns.to_list()):           
+            
+            k2_stat_feat[idx], p_value_feat[idx] = normaltest(df[col])
+            
+            if p_value_feat[idx] > alpha:
+                normal_feat[idx]=True
+            else:
+                pass
+        
+        normal_feat_dict={}
+        normal_feat_dict["Feature"]=df.columns.to_list()
+        normal_feat_dict["Normal_dist"]=normal_feat
+        normal_feat_dict["K2_stat"]=k2_stat_feat
+        normal_feat_dict["p-value"]=p_value_feat
+    else:
+        print(f"select test='shapiro' or 'agostino'")
+        return None
+
     df_nor=pd.DataFrame(normal_feat_dict)
     
     print(f"{df_nor['Normal_dist'].sum()} features are normally distributed")
