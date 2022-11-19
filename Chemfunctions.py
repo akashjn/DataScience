@@ -193,7 +193,7 @@ def pairity_plot(model,X_train,X_test,y_train,y_test):
 
     axs[1].scatter(ytest_pred,(y_test-ytest_pred))
     axs[1].plot([y_train.min()-0.05,y_train.max()+0.05],[0,0],':k',linewidth=2)
-    
+    axs[1].set_xlabel('Predicted (V)')
     # axs[0].set_xlabel('Predicted (V)')
     axs[1].set_ylabel('Residual = Actual - Predicted (V)')
     plt.show()
