@@ -197,3 +197,50 @@ def pairity_plot(model,X_train,X_test,y_train,y_test):
     # axs[0].set_xlabel('Predicted (V)')
     axs[1].set_ylabel('Residual = Actual - Predicted (V)')
     plt.show()
+
+
+def pairity_plot2(model,X_train,X_test,y_train,y_test):
+    import matplotlib.pyplot as plt
+    """
+    use this for nn
+    This function will fit the model and make parity plot with residuals
+    """
+    # model.fit(X_train,y_train)
+    # print(y_test.shape,y_train.shape)
+    
+    ytest_pred=model.predict(X_test)
+
+    ytrain_pred=model.predict(X_train)
+    
+    ytrain_pred=np.array(ytrain_pred).reshape(-1,1)
+    ytest_pred=np.array(ytest_pred).reshape(-1,1)
+    y_test=np.array(y_test).reshape(-1,1)
+    y_train=np.array(y_train).reshape(-1,1)
+
+    fig, axs = plt.subplots(1,2,figsize=(10,5),sharex=True)
+    
+    fig.suptitle(f"model={model}")
+
+    from sklearn.metrics import mean_squared_error as mse
+    from sklearn.metrics import r2_score as r2
+
+    axs[0].plot([y_train.min()-0.05,y_train.max()+0.05],[y_train.min()-0.05,y_train.max()+0.05],':k',linewidth=2)
+    axs[0].set_xlim([y_train.min()-0.05,y_train.max()+0.05])
+    axs[0].set_ylim([y_train.min()-0.05,y_train.max()+0.05])
+    axs[0].set_xlabel('Predicted (V)')
+    axs[0].set_ylabel('DFT Calculated (V)')
+
+    errors_=f"Train: R2 = {r2(y_true=y_train,y_pred=ytrain_pred):0.2f},RMSE = {np.sqrt(mse(y_true=y_train,y_pred=ytrain_pred)):0.2f}"
+    axs[0].scatter(ytrain_pred,y_train,label=errors_)
+    
+    errors_=f"Test: R2 = {r2(y_true=y_test,y_pred=ytest_pred):0.2f},RMSE = {np.sqrt(mse(y_true=y_test,y_pred=ytest_pred)):0.2f}"
+    axs[0].scatter(ytest_pred,y_test,label=errors_)
+
+    axs[0].legend()
+
+    axs[1].scatter(ytest_pred,(y_test-ytest_pred))
+    axs[1].plot([y_train.min()-0.05,y_train.max()+0.05],[0,0],':k',linewidth=2)
+    axs[1].set_xlabel('Predicted (V)')
+    # axs[0].set_xlabel('Predicted (V)')
+    axs[1].set_ylabel('Residual = Actual - Predicted (V)')
+    plt.show()
